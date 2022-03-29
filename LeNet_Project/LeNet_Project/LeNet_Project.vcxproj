@@ -139,11 +139,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="interaction.cpp" />
     <ClCompile Include="LeNet_Project.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="convolutionlayer.h" />
     <ClInclude Include="featuremap.h" />
+    <ClInclude Include="interaction.h" />
     <ClInclude Include="kernel.h" />
     <ClInclude Include="layer.h" />
     <ClInclude Include="neuralnetwork.h" />

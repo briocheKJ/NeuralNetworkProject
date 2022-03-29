@@ -18,6 +18,9 @@
     <ClCompile Include="LeNet_Project.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="interaction.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="neuralnetwork.h">
@@ -33,6 +36,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="layer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="interaction.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
