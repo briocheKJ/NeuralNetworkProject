@@ -139,16 +139,30 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="convolutionlayer.cpp" />
+    <ClCompile Include="fullconnectionlayer.cpp" />
+    <ClCompile Include="image.cpp" />
+    <ClCompile Include="inputlayer.cpp" />
     <ClCompile Include="interaction.cpp" />
+    <ClCompile Include="kernel.cpp" />
     <ClCompile Include="LeNet_Project.cpp" />
+    <ClCompile Include="featuremap.cpp" />
+    <ClCompile Include="neuralnetwork.cpp" />
+    <ClCompile Include="outputlayer.cpp" />
+    <ClCompile Include="subsamplinglayer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="convolutionlayer.h" />
     <ClInclude Include="featuremap.h" />
+    <ClInclude Include="fullconnectionlayer.h" />
+    <ClInclude Include="image.h" />
+    <ClInclude Include="inputlayer.h" />
     <ClInclude Include="interaction.h" />
     <ClInclude Include="kernel.h" />
     <ClInclude Include="layer.h" />
     <ClInclude Include="neuralnetwork.h" />
+    <ClInclude Include="outputlayer.h" />
+    <ClInclude Include="subsamplinglayer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

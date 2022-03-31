@@ -21,6 +21,33 @@
     <ClCompile Include="interaction.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="convolutionlayer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="featuremap.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="kernel.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="neuralnetwork.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="subsamplinglayer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="fullconnectionlayer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="image.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="outputlayer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="inputlayer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="neuralnetwork.h">
@@ -39,6 +66,21 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="interaction.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="subsamplinglayer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="fullconnectionlayer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="image.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="outputlayer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="inputlayer.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
