@@ -15,29 +15,35 @@ class Image;
 class NeuralNetwork
 {
 public:
+	friend OutPutLayer;//因为softmax和getResult的时候需要用到最后一层连接的featureMap
+public:
 	~NeuralNetwork();//释放内存image，featuremap，layer
 	static NeuralNetwork* getInstance();
 	static void releaseInstance();
 
 public:
-	void initialize(const string* pconfig_name, 
-		const string* ptrain_name, const string* ptrain_label_name, 
-		const string* ptest_name = NULL, const string* ptest_label_name=NULL);
+	void initialize(const string* pconfig_name,
+		const string* TRAIN_NAME, const string* TRAINLABEL_NAME,
+		const string* TEST_NAME = NULL, const string* TESTLABEL_NAME = NULL);
 	//读入config的结构相关部分
 	//初始化layerCount，初始化各层，记录各层指针到mLayers，下派各层读config的任务
 	//初始化trainNum和testNum，读入所有的image到pTrainImage和pTestImage的所在位置。
-	void trainBatch();//批量训练
-	void testBatch();//批量测试
-	void testSingle(Image*);//单独测试
+	void trainBatch(int batchsize);//全部分批训练，batchsize表示分批的大小
+	void testBatch();//全部测试
 
 public:
 	FeatureMap* createFeatureMap(int height, int width);
+	FeatureMap* getFeatureMap();
+
+	FeatureMap* createError(int height, int width);
+	FeatureMap* getError();
 
 private:
-
-	void train(Image* image,uint8 *label);
-	void test(Image* image, uint8* label);
-	void readData(Image* image, uint8* label, int train_or_test_count, const string* cData, const string* cLabel);
+	uint8 getResult();
+	void softmax();
+	void train(Image* image, uint8* label);
+	uint8 test(Image* image);
+	bool readData(Image* image, vector<uint8> label, int train_or_test_count, const string* cData, const string* cLabel);
 
 private:
 	static NeuralNetwork* spNeuralNetwork;
@@ -45,12 +51,22 @@ private:
 private:
 	vector<Layer*> mLayers;
 	vector<FeatureMap*> pFeatureMap;
+	vector<FeatureMap*> pError;
 	vector<Image*> pTrainImage;
 	vector<Image*> pTestImage;
+	vector<uint8> trainLabel;
+	vector<uint8> testLabel;
 
 private:
-	int layerCount;
+	int curFeatureMap = 0;
 	int featureMapCount = 0;
+	int curError = 0;
+	int errorCount = 0;
+
+	int layerCount;
 	int trainNum = 0;
 	int testNum = 0;
+
+	int image_h;
+	int image_w;
 };
