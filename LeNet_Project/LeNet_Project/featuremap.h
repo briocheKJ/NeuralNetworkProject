@@ -8,4 +8,6 @@ public:
 	int h;
 	int w;
 	double** data; //存储h*w的FeatureMap
+
+	void clear();
 }; //FeatureMap类：一个对象存储一个特征图

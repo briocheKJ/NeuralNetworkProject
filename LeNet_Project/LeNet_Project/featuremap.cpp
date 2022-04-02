@@ -18,3 +18,10 @@ FeatureMap::~FeatureMap()
 		delete[] data[i];
 	delete[] data;
 }
+
+void FeatureMap::clear()
+{
+	for (int i = 0; i < h; i++)
+		for (int j = 0; j < w; j++)
+			data[i][j] = 0.0;
+}

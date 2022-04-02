@@ -6,6 +6,8 @@ class Layer
 {
 public:
 	virtual void init() = 0;
-	virtual void forward() = 0;
-	virtual void backward() = 0;
+	virtual void forward(double (*active)(double)) = 0;
+	virtual void backward(double (*activegrad)(double)) = 0;
+	virtual void update(double alpha) = 0;
+	virtual void randomize() = 0;
 };
