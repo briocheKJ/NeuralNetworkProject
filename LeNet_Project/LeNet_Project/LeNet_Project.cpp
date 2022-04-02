@@ -2,95 +2,124 @@
 //
 
 #include <cstdio>
+#include <iostream>
+using namespace std;
 #include <stdlib.h>
 #include <string>
 #include "neuralnetwork.h"
 #include "interaction.h" 
-using namespace std;
+
 int state = 0;
 int index = 0;
 int cnt = 0;
-char str1[2000]; char str2[2000]; char str3[2000];
+char str1[2000]; char str2[2000]; char str3[2000]; char str4[2000]; char str5[2000];
 int main()
 {
     while (1)
     {
         if (state == 0) {
             printf("\n\n1.确定网络结构\n2.exit\n");
-            scanf("%d", &index);
+            cin>>index;
             if (index == 1) {
                 
                 state = 1;
                 system("cls");
             }
             else if (index == 2) {
+                //NeuralNetwork::releaseInstance();
                 exit(0);
             }
         }
         else if (state == 1) {
             printf("\n\n是否需要进行测试？\n1.yes\n2.no\n");
-            scanf("%d", &cnt);
+            cin >> cnt;
             if (cnt == 1) {
-                printf("请依次输入配置文件、训练集文件、测试文件\n");
+                printf("请依次输入配置文件、训练集图片文件、训练集数据文件、测试集图片文件、测试集数据文件\n");
                 
-                scanf("%s", str1); scanf("%s", str2); scanf("%s", str3);
-                string st1(str1); string st2(str2); string st3(str3);
-                //调用init函数
+                cin >> str1; cin >> str2; cin >> str3; cin >> str4; cin >> str5;
+                 string st1(str1);  string st2(str2);  string st3(str3);  string st4(str4);  string st5(str5);
+                //NeuralNetwork::getInstance()->initialize(&st1, &st2, &st3, &st4, &st5);
+                 state = 2;
             }
             else if (cnt == 2) {
-                printf("请依次输入配置文件、训练集文件\n");
+                printf("请依次输入配置文件、训练集图片文件、训练集数据文件\n");
 
-                scanf("%s%s", str1, str2);
-                string st1(str1); string st2(str2); 
-                //调用init函数
+                cin >> str1; cin >> str2; cin >> str3; 
+                 string st1(str1);  string st2(str2);  string st3(str3); 
+                //NeuralNetwork::getInstance()->initialize(&st1, &st2, &st3);
+                 state = 6;
             }
             
-            state = 2;
             
+            
+        }
+        else if (state == 6) {
+            printf("\n\n神经网络结构已经建立！\n1.重新组织神经网络\n2.进行训练\n");
+            cin >> index;
+            if (index == 1) {
+                state = 1;
+                //NeuralNetwork::releaseInstance();
+            }
+            else if (index == 2) {
+                int tempnum;
+                printf("请输入Batch大小（必须整除训练集大小）：");
+                cin >> tempnum;
+                //NeuralNetwork::getInstance->trainBatch(tempnum);
+                state = 4;
+            }
         }
         else if (state == 2) {
             printf("\n\n神经网络结构已经建立！\n1.重新组织神经网络\n2.进行训练\n");
-            scanf("%d", &index);
+            cin >> index;
             if (index == 1) {
                 state = 1;
-                //调用清除函数
+                //NeuralNetwork::releaseInstance();
             }
             else if (index == 2) {
-                //调用训练函数
+                int tempnum;
+                printf("请输入Batch大小（必须整除训练集大小）：");
+                cin >> tempnum;
+                //NeuralNetwork::getInstance->trainBatch(tempnum);
                 state = 3;
             }
             
         }
         else if (state == 3) {
-            printf("\n\n训练完毕！\n1.重新组织神经网络\n2.进行测试\n");
-                scanf("%d", &index);
+            printf("\n\n训练完毕！\n1.重新组织神经网络\n2.进行测试\n3.重新训练\n");
+            cin >> index;
             if (index == 1) {
                 state = 1;
-                //调用清除函数
+                //NeuralNetwork::releaseInstance();
             }
             else if (index == 2) {
-                //调用测试函数
+               // NeuralNetwork::getInstance->testBatch();
                 state = 4;
+            }
+            else if (index == 3) {
+                state = 2;
             }
             
         }
         else if (state == 4) {
-            printf("\n\n测试完毕\n1.重新组织神经网络\n2.实践应用\n");
-            scanf("%d", &index);
+            printf("\n\n测试完毕\n1.重新组织神经网络\n2.实践应用\n3.重新训练\n");
+            cin >> index;
             if (index == 1) {
                 state = 1;
-                //调用清除函数
+                //NeuralNetwork::releaseInstance();
             }
             else if (index == 2) {
                 state = 5;
-                //调用test函数
+                interaction::getInstance().Management();
             }
-            
+            else if (index == 3) {
+                state = 2;
+            }
         }
         else if (state == 5) {
             printf("\n\n是否继续实践？\n1.yes\n2.no\n");
-            scanf("%d", & index);
+            cin >> index;
             if (index == 1) {
+                interaction::getInstance().Management();
                 state = 5;
             }
             else if (index == 2) {

@@ -1,5 +1,6 @@
 #pragma once
               //读入opencv的相关库函数
+
 class interaction {
 public:
 	static interaction& getInstance() {
