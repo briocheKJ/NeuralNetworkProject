@@ -59,8 +59,8 @@ void convolute_deltas(FeatureMap* src, FeatureMap* des, Kernel* conv, int index,
 ConvolutionLayer::ConvolutionLayer()
 {
 	cin >> inh;
-	inw = inh; //ÊäÈëÌØÕ÷Í¼´óĞ¡
-	cin >> inputN >> outputN; //ÊäÈë¡¢Êä³ö¸öÊı
+	inw = inh; //è¾“å…¥ç‰¹å¾å›¾å¤§å°
+	cin >> inputN >> outputN; //è¾“å…¥ã€è¾“å‡ºä¸ªæ•°
 
 	connection = new bool* [inputN];
 	for (int i = 0; i < inputN; i++)
@@ -104,16 +104,17 @@ void ConvolutionLayer::init()
 		kernels.push_back(new Kernel(cnt, height, width));
 		deltas.push_back(new Kernel(cnt, height, width));
 		buffer.push_back(new Kernel(cnt, height, width));
+		deltas[i]->clear();
 		buffer[i]->clear();
 	}
 
 	cin >> height;
-	width = height; //¾í»ıºË´óĞ¡
-	cin >> step >> e; //»¬¶¯²½³¤£¬±ßÀ©Õ¹
+	width = height; //å·ç§¯æ ¸å¤§å°
+	cin >> step >> e; //æ»‘åŠ¨æ­¥é•¿ï¼Œè¾¹æ‰©å±•
 
 	outh = (inh - height) / step + 1;
 	outw = (inw - width) / step + 1;
-	//ËãÊä³öÌØÕ÷Í¼´óĞ¡
+	//ç®—è¾“å‡ºç‰¹å¾å›¾å¤§å°
 
 	for (int i = 0; i < inputN; i++)
 		inputs.push_back(NN->getFeatureMap());
