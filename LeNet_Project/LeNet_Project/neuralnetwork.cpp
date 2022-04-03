@@ -4,11 +4,18 @@
 #include "convolutionlayer.h"
 #include "fullconnectionlayer.h"
 #include "subsamplinglayer.h"
-#include "outputlayer.h"
 #include "featuremap.h"
 #include "image.h"
 
+double relu(double x)
+{
+	return x * (x > 0);
+}
 
+double relugrad(double y)
+{
+	return y > 0;
+}
 
 NeuralNetwork::~NeuralNetwork()
 {
@@ -44,7 +51,7 @@ void NeuralNetwork::initialize(const string* pconfig_name,
 {
 	freopen((char*)pconfig_name,"r",stdin);
 
-	scanf("%d%d%d",&trainNum,&testNum,&layerCount);
+	scanf("%d%d%d%d",&trainNum,&testNum,&alpha,&layerCount);
 	scanf("%d%d",&image_h,&image_w);
 	createFeatureMap(image_h, image_w);
 	for (int i = 0; i < layerCount; i++)
@@ -54,16 +61,15 @@ void NeuralNetwork::initialize(const string* pconfig_name,
 		if (type == 1)curLayer = new ConvolutionLayer;
 		if (type == 2)curLayer = new SubSamplingLayer;
 		if (type == 3)curLayer = new FullConnectionLayer;
-		if (type == 4)curLayer = new OutPutLayer;
 		mLayers.push_back(curLayer);
 	}
 
 	fclose(stdin);
 
 
-	if (readData(pTrainImage[i], trainLabel, trainNum, TRAIN_NAME, TRAINLABEL_NAME))
+	if (readData(pTrainImage, trainLabel, trainNum, TRAIN_NAME, TRAINLABEL_NAME))
 		printf("can't find training data!\n"), system("pause");
-	if(readData(pTestImage[i], testLabel, testNum, TEST_NAME, TESTLABEL_NAME))
+	if(readData(pTestImage, testLabel, testNum, TEST_NAME, TESTLABEL_NAME))
 		printf("can't find testing data!\n"), system("pause");
 
 }
@@ -71,12 +77,14 @@ void NeuralNetwork::initialize(const string* pconfig_name,
 void NeuralNetwork::trainBatch(int batchsize)
 {
 	// ÅÐ¶ÏbatchsizeÕû³ýtrainNumÂð
+	for (int i = 0; i < layerCount; i++)
+		mLayers[i]->randomize();
 	for (int i = 0; i < trainNum / batchsize; i++)
 	{
 		for (int j = 0; j < batchsize; j++)
 			train(pTrainImage[i*batchsize+j],&trainLabel[i*batchsize+j]);
 		for (int j = 0; j < layerCount; j++)
-			mLayers[i]->update();
+			mLayers[j]->update(alpha);
 	}
 }
 
@@ -100,20 +108,20 @@ FeatureMap* NeuralNetwork::getError(){return pError[curError++];}
 FeatureMap* NeuralNetwork::createFeatureMap(int height,int width){return pFeatureMap[++featureMapCount] = new FeatureMap(height,width);}
 FeatureMap* NeuralNetwork::createError(int height, int width) { return pError[++errorCount] = new FeatureMap(height, width); }
 
-void NeuralNetwork::train(Image* image,uint8* lable)
+void NeuralNetwork::train(Image* image,uint8* label)
 {
 	image->transform(pFeatureMap[0]);
 	for (int i = 0; i < layerCount; i++)
-		mLayers[i]->forward();
-	softmax();
+		mLayers[i]->forward(relu);
+	softmax(*label);
 	for (int i = layerCount - 1; i >= 0; i--)
-		mLayers[i]->backward();
+		mLayers[i]->backward(relugrad);
 }
-uint8 getResult()
+uint8 NeuralNetwork::getResult()
 {
 	int result=0;
-	for (int i = 1; i < OutPutN; i++)
-		if (outputs[result].data[0][0] < outputs[i].data[0][0])
+	for (int i = curFeatureMap; i < featureMapCount; i++)
+		if (pFeatureMap[result]->data[0][0] < pFeatureMap[result]->data[0][0])
 			result = i;
 	return result;
 }
@@ -122,11 +130,11 @@ uint8 NeuralNetwork::test(Image* image)
 {
 	image->transform(pFeatureMap[0]);
 	for (int i = 0; i < layerCount; i++)
-		mLayers[i]->forward();
+		mLayers[i]->forward(relu);
 	return getResult();
 }
 
-bool readData(Image* image, vector<uint8> label, int train_or_test_count, const string* cData, const string* cLabel)
+bool NeuralNetwork::readData(vector<Image*> image, vector<uint8> label, int train_or_test_count, const string* cData, const string* cLabel)
 {
 	FILE* fp_image = fopen((char*)cData, "rb");
 	FILE* fp_label = fopen((char*)cLabel, "rb");
@@ -139,7 +147,7 @@ bool readData(Image* image, vector<uint8> label, int train_or_test_count, const 
 	for (int i = 0; i < train_or_test_count; i++)
 		for (int j = 0; j < Image::sh; j++)
 			for (int k = 0; k < Image::sw; k++)
-				image[i].data[j][k] = tImage[i* Image::sh * Image::sw+j*Image::sw+k];
+				image[i]->data[j][k] = tImage[i* Image::sh * Image::sw+j*Image::sw+k];
 
 	uint8* tplabel = new uint8[train_or_test_count];
 	fread(tplabel, train_or_test_count, 1, fp_label);
@@ -150,7 +158,24 @@ bool readData(Image* image, vector<uint8> label, int train_or_test_count, const 
 	fclose(fp_label);
 	return 0;
 }
-void softmax()
+void NeuralNetwork::softmax(uint8 label)
 {
-	;
+	double max =pFeatureMap[curFeatureMap+getResult()]->data[0][0];
+	double k = 0, inner = 0;
+	for (uint8 i = curFeatureMap; i < featureMapCount; ++i)
+	{
+		pError[curError+i-curFeatureMap]->data[0][0] = exp(pFeatureMap[i]->data[0][0] - max);
+		k += pError[curError + i - curFeatureMap]->data[0][0];
+	}
+	k = 1. / k;
+	for (uint8 i = curError; i < errorCount; ++i)
+	{
+		pError[i]->data[0][0] *= k;
+		inner -= (pError[i]->data[0][0])* (pError[i]->data[0][0]);
+	}
+	inner += pError[label+curError]->data[0][0];
+	for (uint8 i = curError; i < errorCount; ++i)
+	{
+		pError[i]->data[0][0] *= (i == label+curError) - pError[i]->data[0][0] - inner;
+	}
 }

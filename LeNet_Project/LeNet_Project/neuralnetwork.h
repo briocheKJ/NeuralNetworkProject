@@ -15,8 +15,6 @@ class Image;
 class NeuralNetwork
 {
 public:
-	friend OutPutLayer;//因为softmax和getResult的时候需要用到最后一层连接的featureMap
-public:
 	~NeuralNetwork();//释放内存image，featuremap，layer
 	static NeuralNetwork* getInstance();
 	static void releaseInstance();
@@ -40,10 +38,10 @@ public:
 
 private:
 	uint8 getResult();
-	void softmax();
+	void softmax(uint8 label);
 	void train(Image* image, uint8* label);
 	uint8 test(Image* image);
-	bool readData(Image* image, vector<uint8> label, int train_or_test_count, const string* cData, const string* cLabel);
+	bool readData(vector<Image*> image, vector<uint8> label, int train_or_test_count, const string* cData, const string* cLabel);
 
 private:
 	static NeuralNetwork* spNeuralNetwork;
@@ -58,6 +56,8 @@ private:
 	vector<uint8> testLabel;
 
 private:
+	int alpha;
+
 	int curFeatureMap = 0;
 	int featureMapCount = 0;
 	int curError = 0;
