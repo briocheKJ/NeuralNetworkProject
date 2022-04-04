@@ -26,7 +26,7 @@ int main()
                 system("cls");
             }
             else if (index == 2) {
-                //NeuralNetwork::releaseInstance();
+                
                 exit(0);
             }
         }
@@ -38,7 +38,7 @@ int main()
                 
                 cin >> str1; cin >> str2; cin >> str3; cin >> str4; cin >> str5;
                  string st1(str1);  string st2(str2);  string st3(str3);  string st4(str4);  string st5(str5);
-                //NeuralNetwork::getInstance()->initialize(&st1, &st2, &st3, &st4, &st5);
+                NeuralNetwork::getInstance()->initialize(&st1, &st2, &st3, &st4, &st5);
                  state = 2;
             }
             else if (cnt == 2) {
@@ -46,7 +46,7 @@ int main()
 
                 cin >> str1; cin >> str2; cin >> str3; 
                  string st1(str1);  string st2(str2);  string st3(str3); 
-                //NeuralNetwork::getInstance()->initialize(&st1, &st2, &st3);
+                NeuralNetwork::getInstance()->initialize(&st1, &st2, &st3);
                  state = 6;
             }
             
@@ -58,13 +58,13 @@ int main()
             cin >> index;
             if (index == 1) {
                 state = 1;
-                //NeuralNetwork::releaseInstance();
+                NeuralNetwork::releaseInstance();
             }
             else if (index == 2) {
                 int tempnum;
                 printf("请输入Batch大小（必须整除训练集大小）：");
                 cin >> tempnum;
-                //NeuralNetwork::getInstance->trainBatch(tempnum);
+                NeuralNetwork::getInstance->trainBatch(tempnum);
                 state = 4;
             }
         }
@@ -73,13 +73,13 @@ int main()
             cin >> index;
             if (index == 1) {
                 state = 1;
-                //NeuralNetwork::releaseInstance();
+                NeuralNetwork::releaseInstance();
             }
             else if (index == 2) {
                 int tempnum;
                 printf("请输入Batch大小（必须整除训练集大小）：");
                 cin >> tempnum;
-                //NeuralNetwork::getInstance->trainBatch(tempnum);
+                NeuralNetwork::getInstance->trainBatch(tempnum);
                 state = 3;
             }
             
@@ -89,10 +89,10 @@ int main()
             cin >> index;
             if (index == 1) {
                 state = 1;
-                //NeuralNetwork::releaseInstance();
+                NeuralNetwork::releaseInstance();
             }
             else if (index == 2) {
-               // NeuralNetwork::getInstance->testBatch();
+                NeuralNetwork::getInstance->testBatch();
                 state = 4;
             }
             else if (index == 3) {
@@ -101,11 +101,11 @@ int main()
             
         }
         else if (state == 4) {
-            printf("\n\n测试完毕\n1.重新组织神经网络\n2.实践应用\n3.重新训练\n");
+            printf("\n\n请选择\n1.重新组织神经网络\n2.实践应用\n3.重新训练\n");
             cin >> index;
             if (index == 1) {
                 state = 1;
-                //NeuralNetwork::releaseInstance();
+                NeuralNetwork::releaseInstance();
             }
             else if (index == 2) {
                 state = 5;
@@ -124,6 +124,7 @@ int main()
             }
             else if (index == 2) {
                 state = 0;
+                NeuralNetwork::releaseInstance();
             }
         }
 
