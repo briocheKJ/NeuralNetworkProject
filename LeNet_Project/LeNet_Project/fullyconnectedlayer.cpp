@@ -1,5 +1,5 @@
 #include "neuralnetwork.h"
-#include "FullyConnectedLayer.h"
+#include "fullyconnectedlayer.h"
 #include "featuremap.h"
 #include <iostream>
 using namespace std;
@@ -7,8 +7,8 @@ using namespace std;
 FullyConnectedLayer::FullyConnectedLayer()
 {
 	cin >> inh;
-	inw = inh=1; //ÊäÈëÌØÕ÷Í¼´óĞ¡
-	cin >> inputN >> outputN; //ÊäÈë¡¢Êä³ö¸öÊı
+	inw = inh=1; //è¾“å…¥ç‰¹å¾å›¾å¤§å°
+	cin >> inputN >> outputN; //è¾“å…¥ã€è¾“å‡ºä¸ªæ•°
 	w = new double* [inputN];
 	Wbuffet= new double* [inputN];
 	for (int i = 0; i < outputN; i++) {
@@ -39,8 +39,8 @@ void FullyConnectedLayer::init()
 		outErrors.push_back(NN->createError(outh, outw));
     randomize();
 }
-void FullyConnectedLayer::forward(double (*active)(double)){  //¼ÆËãoutputs
-	for(int i = 0; i < inputN;i++){// µÚi¸öÉñ¾­Ôª
+void FullyConnectedLayer::forward(double (*active)(double)){  //è®¡ç®—outputs
+	for(int i = 0; i < inputN;i++){// ç¬¬iä¸ªç¥ç»å…ƒ
 		double ans = 0;
 		for (int j = 0; j < outputN;j++) {
 			ans = ans + w[i][j]*inputs[i]->data[0][0];
