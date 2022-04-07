@@ -28,7 +28,7 @@ public:
 	//初始化trainNum和testNum，读入所有的image到pTrainImage和pTestImage的所在位置。
 	void trainBatch(int batchsize);//全部分批训练，batchsize表示分批的大小
 	void testBatch();//全部测试
-
+	uint8 testSingle(Image*);
 public:
 	FeatureMap* createFeatureMap(int height, int width);
 	FeatureMap* getFeatureMap();

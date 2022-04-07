@@ -64,7 +64,7 @@ int main()
                 int tempnum;
                 printf("请输入Batch大小（必须整除训练集大小）：");
                 cin >> tempnum;
-                NeuralNetwork::getInstance->trainBatch(tempnum);
+                NeuralNetwork::getInstance()->trainBatch(tempnum);
                 state = 4;
             }
         }
@@ -79,7 +79,7 @@ int main()
                 int tempnum;
                 printf("请输入Batch大小（必须整除训练集大小）：");
                 cin >> tempnum;
-                NeuralNetwork::getInstance->trainBatch(tempnum);
+                NeuralNetwork::getInstance()->trainBatch(tempnum);
                 state = 3;
             }
             
@@ -92,7 +92,7 @@ int main()
                 NeuralNetwork::releaseInstance();
             }
             else if (index == 2) {
-                NeuralNetwork::getInstance->testBatch();
+                NeuralNetwork::getInstance()->testBatch();
                 state = 4;
             }
             else if (index == 3) {

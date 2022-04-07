@@ -42,12 +42,6 @@
     <ClCompile Include="image.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="outputlayer.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="inputlayer.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="neuralnetwork.h">
@@ -75,12 +69,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="image.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="outputlayer.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="inputlayer.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

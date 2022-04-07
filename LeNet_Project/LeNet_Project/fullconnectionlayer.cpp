@@ -65,7 +65,7 @@ void FullConnectionLayer::backward(double (*activegrad)(double)) {
 		}
 	}
 	for (int i = 0; i < outputN; i++) {
-		Bbuffet[i] = outErrors[j]->data[0][0];
+		Bbuffet[i] = outErrors[i]->data[0][0];
 	}
 }
 void FullConnectionLayer::update(double alpha) {

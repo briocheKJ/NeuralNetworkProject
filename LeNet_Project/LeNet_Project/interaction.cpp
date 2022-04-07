@@ -68,6 +68,6 @@ void interaction::Management() {
 			pimage->data[i][j] = img.at<uchar>(i, j);
 		}
 	}
-	 NeuralNetwork:: getInstance->testSingle(pimage);
+	 NeuralNetwork:: getInstance()->testSingle(pimage);
 	delete pimage;
 }

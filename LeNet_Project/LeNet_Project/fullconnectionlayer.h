@@ -4,7 +4,7 @@
 class FullConnectionLayer : public Layer{
 public:
 	FullConnectionLayer(); //构造时开kernels,deltas,connection空间
-	FullConnectionLayer();
+	~FullConnectionLayer();
 	void init();
 	void forward(double (*active)(double)); //计算outputs
 	void backward(double (*activegrad)(double)); //计算errors,deltas

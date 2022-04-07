@@ -1,2 +1,4 @@
-﻿  interaction.cpp
+﻿  neuralnetwork.cpp
+C:\Users\l'zh\Desktop\NeuralNetworkProject-main\LeNet_Project\LeNet_Project\neuralnetwork.cpp(103,40): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
+C:\Users\l'zh\Desktop\NeuralNetworkProject-main\LeNet_Project\LeNet_Project\neuralnetwork.cpp(104,11): warning C4475: “printf”: 不可在格式说明符中将长度修饰符“ll”与类型字段字符“f”一起使用
   LeNet_Project.vcxproj -> C:\Users\l'zh\Desktop\NeuralNetworkProject-main\LeNet_Project\x64\Debug\LeNet_Project.exe

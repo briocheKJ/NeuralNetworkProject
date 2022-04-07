@@ -1,11 +1,13 @@
 #include <cstdio>
-
+#include <iostream>
 #include "neuralnetwork.h"
 #include "convolutionlayer.h"
 #include "fullconnectionlayer.h"
 #include "subsamplinglayer.h"
 #include "featuremap.h"
 #include "image.h"
+
+NeuralNetwork* NeuralNetwork::spNeuralNetwork=nullptr;
 
 double relu(double x)
 {
@@ -47,13 +49,15 @@ void NeuralNetwork::releaseInstance()
 
 void NeuralNetwork::initialize(const string* pconfig_name,
 	const string* TRAIN_NAME, const string* TRAINLABEL_NAME,
-	const string* TEST_NAME = NULL, const string* TESTLABEL_NAME = NULL)
+	const string* TEST_NAME , const string* TESTLABEL_NAME )
 {
-	freopen((char*)pconfig_name,"r",stdin);
-
+	if(freopen(pconfig_name->c_str(), "r", stdin) == NULL)cout << "Fail!" << endl;
 	scanf("%d%d%d%d",&trainNum,&testNum,&alpha,&layerCount);
 	scanf("%d%d",&image_h,&image_w);
 	createFeatureMap(image_h, image_w);
+
+	cout << trainNum << endl;
+	exit(0);
 	for (int i = 0; i < layerCount; i++)
 	{
 		int type; scanf("%d", &type);
@@ -66,11 +70,11 @@ void NeuralNetwork::initialize(const string* pconfig_name,
 
 	fclose(stdin);
 
-
+	/*
 	if (readData(pTrainImage, trainLabel, trainNum, TRAIN_NAME, TRAINLABEL_NAME))
 		printf("can't find training data!\n"), system("pause");
 	if(readData(pTestImage, testLabel, testNum, TEST_NAME, TESTLABEL_NAME))
-		printf("can't find testing data!\n"), system("pause");
+		printf("can't find testing data!\n"), system("pause");*/
 
 }
 
@@ -178,4 +182,8 @@ void NeuralNetwork::softmax(uint8 label)
 	{
 		pError[i]->data[0][0] *= (i == label+curError) - pError[i]->data[0][0] - inner;
 	}
+}
+uint8 NeuralNetwork::testSingle(Image* image)
+{
+	return test(image);
 }
