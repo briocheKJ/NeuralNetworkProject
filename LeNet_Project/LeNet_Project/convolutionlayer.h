@@ -2,6 +2,7 @@
 
 #include "layer.h"
 #include <vector>
+#include <fstream>
 
 class FeatureMap;
 class Kernel;
@@ -9,9 +10,9 @@ class Kernel;
 class ConvolutionLayer : public Layer
 {
 public:
-	ConvolutionLayer(); //构造时开kernels,deltas,connection空间
+	ConvolutionLayer(ifstream&); //构造时开kernels,deltas,connection空间
 	~ConvolutionLayer();
-	void init();
+	void init(ifstream&);
 	void forward(double (*active)(double)); //计算outputs
 	void backward(double (*activegrad)(double)); //计算errors,deltas
 	void update(double alpha); //用buffer更新kernels，学习率alpha

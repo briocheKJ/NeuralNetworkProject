@@ -1,35 +1,37 @@
-#include "subsamplinglayer.h"
 #include "neuralnetwork.h"
+#include "subsamplinglayer.h"
 #include "featuremap.h"
 #include <iostream>
 using namespace std;
-
-SubSamplingLayer::SubSamplingLayer()
+SubSamplingLayer::SubSamplingLayer(ifstream& config)
 {
-	cin >> inh;
-	inw = inh = 1; //输入特征图大小
-	cin >> inputN >> outputN; //输入、输出个数
-	w = new double* [inputN];
-	Wbuffet = new double* [inputN];
-	for (int i = 0; i < outputN; i++) {
-		w[i] = new double[outputN];
-		Wbuffet[i] = new double[outputN];
+	config >> inh;
+	inw = inh; //输入特征图大小
+	config >> inputN >> outputN; //输入、输出个数
+	config >> f;
+	outh = inh / f;
+	outw = inw / f;
+	mark = new int** [inputN];
+	for (int i = 0; i < inputN; i++) {
+		mark[i] = new int* [inh];
+		for (int j = 0; j < inh; j++) {
+			mark[i][j] = new int[inw]{0};
+		}
 	}
-	b = new double[outputN];
-	Bbuffet = new double[outputN];
-	init();
+	init(config);
 }
 SubSamplingLayer::~SubSamplingLayer() {
-	delete[]b;
 	for (int i = 0; i < inputN; i++) {
-		delete[]w[i];
+		for (int row = 0; row < inh; row++) {
+			delete[]mark[i][row];
+		}
+		delete[]mark[i];
 	}
-	delete[]w;
+	delete[]mark;
 }
-void SubSamplingLayer::init()
-{
+void SubSamplingLayer::init(ifstream& config) {
 	NeuralNetwork* NN = NeuralNetwork::getInstance();
-	for (int i = 0; i < inputN; i++)
+    for (int i = 0; i < inputN; i++)
 		inputs.push_back(NN->getFeatureMap());
 	for (int i = 0; i < inputN; i++)
 		inErrors.push_back(NN->getError());
@@ -37,44 +39,58 @@ void SubSamplingLayer::init()
 		outputs.push_back(NN->createFeatureMap(outh, outw));
 	for (int i = 0; i < outputN; i++)
 		outErrors.push_back(NN->createError(outh, outw));
-	randomize();
-}
-void SubSamplingLayer::forward(double (*active)(double)) {  //计算outputs
-	for (int i = 0; i < inputN; i++) {// 第i个神经元
-		double ans = 0;
-		for (int j = 0; j < outputN; j++) {
-			ans = ans + w[i][j] * inputs[i]->data[0][0];
+	for (int i = 0; i < inputN; i++) {
+		for (int row = 0; row < inh; row++) {
+			for (int col = 0; col < inw; col++) {
+				inErrors[i]->data[row][col] = 0;
+			}
 		}
-		ans = ans + b[i];
-		ans = active(ans);
-		outputs[i]->data[0][0] = ans;
 	}
 }
+void SubSamplingLayer::forward(double (*active)(double)) {
+	for (int i = 0; i < inputN; i++) {
+		// 第i个输出featuremap
+		for (int row = 0; row < outh; row++) {
+			for (int col = 0; col < outh; col++) {
+				outputs[i]->data[row][col] = Max(i,row,col);
+			}
+		}
+	}
+}
+double  SubSamplingLayer::Max(int i,int row,int col) {
+	// 第i个input， output的第row行第col列
+	double max = 0; int maxrow=0, maxcol=0;
+	for (int Irow = row * f; Irow <= (row + 1) * f - 1; Irow++) {
+		for (int Icol = col * f; Icol <= (col + 1) * f - 1; Icol++) {
+			if (inputs[i]->data[Irow][Icol] > max) {
+				max = inputs[i]->data[Irow][Icol];
+				maxrow = Irow; maxcol = Icol;
+			}
+		}
+	}
+	mark[i][maxrow][maxcol] = 1;
+	return max;
+}
+
 void SubSamplingLayer::backward(double (*activegrad)(double)) {
 	for (int i = 0; i < inputN; i++) {
-		double sum = 0;
-		for (int j = 0; j < outputN; j++) {
-			sum = sum + outErrors[j]->data[0][0] * w[i][j];
+	    // 求第i个Outerrors
+		for (int row = 0; row < outh; row++) {
+			for (int col = 0; col < outh; col++) {
+				double data = outErrors[i]->data[row][col];
+				SetInError(i, data, row, col);
+			}
 		}
-		sum = sum * activegrad(inputs[i]->data[0][0]);
-		inErrors[i]->data[0][0] = sum;
-	}
-	for (int i = 0; i < inputN; i++) {
-		for (int j = 0; j < outputN; j++) {
-			Wbuffet[i][j] = outErrors[j]->data[0][0] * outputs[i]->data[0][0];
-		}
-	}
-	for (int i = 0; i < outputN; i++) {
-		Bbuffet[i] = outErrors[i]->data[0][0];
 	}
 }
-void SubSamplingLayer::update(double alpha) {
-	for (int i = 0; i < inputN; i++) {
-		for (int j = 0; j < outputN; j++) {
-			w[i][j] = w[i][j] - alpha * Wbuffet[i][j];
+void SubSamplingLayer::SetInError(int i, double data, int row, int col) {
+	// 写第i个InError，
+	for (int Irow = row * f; Irow <= (row + 1) * f - 1; Irow++) {
+		for (int Icol = col * f; Icol <= (col + 1) * f - 1; Icol++) {
+			if (mark[i][Irow][Icol] == 1) {
+				inErrors[i]->data[row][col] = data; 
+				return; 
+			}
 		}
-	}
-	for (int i = 0; i < outputN; i++) {
-		b[i] = b[i] - Bbuffet[i] * alpha;
 	}
 }

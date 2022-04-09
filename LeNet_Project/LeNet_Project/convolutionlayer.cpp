@@ -56,16 +56,15 @@ void convolute_deltas(FeatureMap* src, FeatureMap* des, Kernel* conv, int index,
 		}
 }
 
-ConvolutionLayer::ConvolutionLayer()
+ConvolutionLayer::ConvolutionLayer(ifstream&config)
 {
-	cin >> inh;
+	config >> inh;
 	inw = inh; //输入特征图大小
-	cin >> inputN >> outputN; //输入、输出个数
-
+	config>> inputN >> outputN; //输入、输出个数
 	connection = new bool* [inputN];
 	for (int i = 0; i < inputN; i++)
 		connection[i] = new bool[outputN];
-	init();
+	init(config);
 }
 
 ConvolutionLayer::~ConvolutionLayer()
@@ -84,18 +83,26 @@ ConvolutionLayer::~ConvolutionLayer()
 	delete[] connection;
 }
 
-void ConvolutionLayer::init()
+void ConvolutionLayer::init(ifstream&config)
 {
 	NeuralNetwork* NN = NeuralNetwork::getInstance();
 
 	std::string nows;
 	for (int i = 0; i < inputN; i++)
 	{
-		cin >> nows;
+		config >> nows; 
 		for (int j = 0; j < outputN; j++)
 			connection[i][j] = nows[j] - '0';
 	}
-	
+
+	config >> height;
+	width = height; //卷积核大小
+	config >> step >> e; //滑动步长，边扩展
+
+	outh = (inh - height) / step + 1;
+	outw = (inw - width) / step + 1;
+	//算输出特征图大小
+
 	for (int i = 0; i < outputN; i++)
 	{
 		int cnt = 0;
@@ -108,13 +115,7 @@ void ConvolutionLayer::init()
 		buffer[i]->clear();
 	}
 
-	cin >> height;
-	width = height; //卷积核大小
-	cin >> step >> e; //滑动步长，边扩展
-
-	outh = (inh - height) / step + 1;
-	outw = (inw - width) / step + 1;
-	//算输出特征图大小
+	
 
 	for (int i = 0; i < inputN; i++)
 		inputs.push_back(NN->getFeatureMap());

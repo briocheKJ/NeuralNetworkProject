@@ -3,17 +3,17 @@
 #include <vector>
 class FullConnectionLayer : public Layer{
 public:
-	FullConnectionLayer(); //构造时开kernels,deltas,connection空间
+	FullConnectionLayer(ifstream&config); //构造时开kernels,deltas,connection空间
 	~FullConnectionLayer();
-	void init();
+	void init(ifstream&);
 	void forward(double (*active)(double)); //计算outputs
 	void backward(double (*activegrad)(double)); //计算errors,deltas
 	void update(double alpha); //用buffer更新kernels，学习率alpha
 	void randomize() {
-		for (int i = 0; i < outputN; i++) b[i] = 0;
-		for (int i = 0; i < outputN; i++) {
-			for (int j = 0; j < inputN; j++) {
-				w[i][j] = 1;
+		for (int i = 0; i < inputN; i++) b[i] = 0;
+		for (int i = 0; i < inputN; i++) {
+			for (int j = 0; j < outputN; j++) {
+				w[i][j] = rand() * (2. / RAND_MAX) - 1;
 			}
 		}
 

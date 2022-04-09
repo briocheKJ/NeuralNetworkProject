@@ -41,7 +41,7 @@ private:
 	void softmax(uint8 label);
 	void train(Image* image, uint8* label);
 	uint8 test(Image* image);
-	bool readData(vector<Image*> image, vector<uint8> label, int train_or_test_count, const string* cData, const string* cLabel);
+	bool readData(vector<Image*> &image, vector<uint8> &label, int train_or_test_count, const string* cData, const string* cLabel);
 
 private:
 	static NeuralNetwork* spNeuralNetwork;
@@ -56,7 +56,7 @@ private:
 	vector<uint8> testLabel;
 
 private:
-	int alpha;
+	double alpha;
 
 	int curFeatureMap = 0;
 	int featureMapCount = 0;
@@ -69,4 +69,7 @@ private:
 
 	int image_h;
 	int image_w;
+
+	int firstH;
+	int firstW;
 };

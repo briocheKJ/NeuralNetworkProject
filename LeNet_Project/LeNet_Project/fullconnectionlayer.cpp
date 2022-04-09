@@ -4,29 +4,34 @@
 #include <iostream>
 using namespace std;
 
-FullConnectionLayer::FullConnectionLayer()
+FullConnectionLayer::FullConnectionLayer(ifstream&config)
 {
-	cin >> inh;
+	config >> inh;
 	inw = inh = 1; //输入特征图大小
-	cin >> inputN >> outputN; //输入、输出个数
+	outw = outh = 1;
+	config >> inputN >> outputN; //输入、输出个数
 	w = new double* [inputN];
 	Wbuffet = new double* [inputN];
-	for (int i = 0; i < outputN; i++) {
+	for (int i = 0; i < inputN; i++) {
 		w[i] = new double[outputN];
 		Wbuffet[i] = new double[outputN];
 	}
 	b = new double[outputN];
 	Bbuffet = new double[outputN];
-	init();
+	init(config);
 }
 FullConnectionLayer::~FullConnectionLayer() {
-	delete[]b;
+	cout << sizeof(b) << endl;
+	delete [] b;
+	delete [] Bbuffet;
 	for (int i = 0; i < inputN; i++) {
-		delete[]w[i];
+		delete [] w[i];
+		delete [] Wbuffet[i];
 	}
-	delete[]w;
+	delete [] w;
+	delete [] Wbuffet;
 }
-void FullConnectionLayer::init()
+void FullConnectionLayer::init(ifstream& config)
 {
 	NeuralNetwork* NN = NeuralNetwork::getInstance();
 	for (int i = 0; i < inputN; i++)

@@ -72,4 +72,18 @@
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="t10k-images-idx3-ubyte">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="t10k-labels-idx1-ubyte">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="train-images-idx3-ubyte">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="train-labels-idx1-ubyte">
+      <Filter>资源文件</Filter>
+    </None>
+  </ItemGroup>
 </Project>

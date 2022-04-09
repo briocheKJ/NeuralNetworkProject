@@ -4,8 +4,8 @@ class FeatureMap;
 class Image
 {
 public:
-	static void setwh(int w,int h);
-	void transform(FeatureMap* featuremap);
+	static void setwh(int h,int w);
+	void transform(FeatureMap* featuremap,int firstH,int firstW);
 	Image();
 	~Image();
 	static int sh;

@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <iostream>
+#include <fstream>
 #include "neuralnetwork.h"
 #include "convolutionlayer.h"
 #include "fullconnectionlayer.h"
@@ -29,6 +30,8 @@ NeuralNetwork::~NeuralNetwork()
 		delete mLayers[i];
 	for (int i = 0; i < pFeatureMap.size(); i++)
 		delete pFeatureMap[i];
+	for (int i = 0; i < pError.size(); i++)
+		delete pError[i];
 }
 
 NeuralNetwork* NeuralNetwork::getInstance()
@@ -51,32 +54,44 @@ void NeuralNetwork::initialize(const string* pconfig_name,
 	const string* TRAIN_NAME, const string* TRAINLABEL_NAME,
 	const string* TEST_NAME , const string* TESTLABEL_NAME )
 {
-	if(freopen(pconfig_name->c_str(), "r", stdin) == NULL)cout << "Fail!" << endl;
-	scanf("%d%d%d%d",&trainNum,&testNum,&alpha,&layerCount);
-	scanf("%d%d",&image_h,&image_w);
-	createFeatureMap(image_h, image_w);
+	ifstream config(pconfig_name->c_str());
+	config>>trainNum>>testNum>>alpha>>layerCount;
+	config>>image_h>>image_w;
+	config >> firstH >> firstW;
+	
+	Image::setwh(image_h,image_w);
 
-	cout << trainNum << endl;
-	exit(0);
+	createFeatureMap(firstH, firstW);
+	createError(firstH, firstW);
+	
 	for (int i = 0; i < layerCount; i++)
 	{
-		int type; scanf("%d", &type);
+		int type; config >> type;
+		cout << type<<"!!!" << endl;
 		Layer* curLayer;
-		if (type == 1)curLayer = new ConvolutionLayer;
-		if (type == 2)curLayer = new SubSamplingLayer;
-		if (type == 3)curLayer = new FullConnectionLayer;
+		if (type == 1)curLayer = new ConvolutionLayer(config);
+		if (type == 2)curLayer = new SubSamplingLayer(config);
+		if (type == 3)curLayer = new FullConnectionLayer(config);
 		mLayers.push_back(curLayer);
 	}
-
-	fclose(stdin);
-
-	/*
 	if (readData(pTrainImage, trainLabel, trainNum, TRAIN_NAME, TRAINLABEL_NAME))
 		printf("can't find training data!\n"), system("pause");
 	if(readData(pTestImage, testLabel, testNum, TEST_NAME, TESTLABEL_NAME))
-		printf("can't find testing data!\n"), system("pause");*/
-
+		printf("can't find testing data!\n"), system("pause");
+	cout << pTrainImage.size() << endl;
+	for (int i = 0; i < 28; i++)
+	{ 
+		for (int j = 0; j < 28;j++)
+			if((int)pTrainImage[9999]->data[i][j])cout << 1;
+			else cout<<"0";
+		cout << endl;
+	}
 }
+/*config.txt
+train-images-idx3-ubyte
+train-labels-idx1-ubyte
+t10k-images-idx3-ubyte
+t10k-labels-idx1-ubyte*/
 
 void NeuralNetwork::trainBatch(int batchsize)
 {
@@ -109,12 +124,22 @@ void NeuralNetwork::testBatch()
 FeatureMap* NeuralNetwork::getFeatureMap(){return pFeatureMap[curFeatureMap++]; }
 FeatureMap* NeuralNetwork::getError(){return pError[curError++];}
 
-FeatureMap* NeuralNetwork::createFeatureMap(int height,int width){return pFeatureMap[++featureMapCount] = new FeatureMap(height,width);}
-FeatureMap* NeuralNetwork::createError(int height, int width) { return pError[++errorCount] = new FeatureMap(height, width); }
+FeatureMap* NeuralNetwork::createFeatureMap(int height, int width) 
+{ 
+	++featureMapCount; 
+	pFeatureMap.push_back(new FeatureMap(height, width)); 
+	return pFeatureMap[featureMapCount-1];
+}
+FeatureMap* NeuralNetwork::createError(int height, int width) 
+{ 
+	++errorCount;
+	pError.push_back(new FeatureMap(height, width));
+	return pError[errorCount-1];
+}
 
 void NeuralNetwork::train(Image* image,uint8* label)
 {
-	image->transform(pFeatureMap[0]);
+	image->transform(pFeatureMap[0],firstH,firstW);
 	for (int i = 0; i < layerCount; i++)
 		mLayers[i]->forward(relu);
 	softmax(*label);
@@ -132,16 +157,16 @@ uint8 NeuralNetwork::getResult()
 
 uint8 NeuralNetwork::test(Image* image)
 {
-	image->transform(pFeatureMap[0]);
+	image->transform(pFeatureMap[0],firstH,firstW);
 	for (int i = 0; i < layerCount; i++)
 		mLayers[i]->forward(relu);
 	return getResult();
 }
 
-bool NeuralNetwork::readData(vector<Image*> image, vector<uint8> label, int train_or_test_count, const string* cData, const string* cLabel)
+bool NeuralNetwork::readData(vector<Image*> &image, vector<uint8> &label, int train_or_test_count, const string* cData, const string* cLabel)
 {
-	FILE* fp_image = fopen((char*)cData, "rb");
-	FILE* fp_label = fopen((char*)cLabel, "rb");
+	FILE* fp_image = fopen(cData->c_str(), "rb");
+	FILE* fp_label = fopen(cLabel->c_str(), "rb");
 	if (!fp_image || !fp_label) return 1;
 	fseek(fp_image, 16, SEEK_SET);
 	fseek(fp_label, 8, SEEK_SET);
@@ -149,9 +174,12 @@ bool NeuralNetwork::readData(vector<Image*> image, vector<uint8> label, int trai
 	uint8* tImage = new uint8[train_or_test_count*Image::sh*Image::sw];
 	fread(tImage, Image::sh * Image::sw * train_or_test_count, 1, fp_image);
 	for (int i = 0; i < train_or_test_count; i++)
+	{ 
+		image.push_back(new Image());
 		for (int j = 0; j < Image::sh; j++)
 			for (int k = 0; k < Image::sw; k++)
-				image[i]->data[j][k] = tImage[i* Image::sh * Image::sw+j*Image::sw+k];
+				image[i]->data[j][k] = tImage[i* Image::sh * Image::sw+j*Image::sh+k];
+	}
 
 	uint8* tplabel = new uint8[train_or_test_count];
 	fread(tplabel, train_or_test_count, 1, fp_label);
