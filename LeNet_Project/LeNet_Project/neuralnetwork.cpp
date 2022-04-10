@@ -93,7 +93,7 @@ void NeuralNetwork::initialize(const string* pconfig_name,
 	}
 	*/
 }
-/*config.txt
+/*config3.txt
 train-images-idx3-ubyte
 train-labels-idx1-ubyte
 t10k-images-idx3-ubyte
@@ -120,7 +120,7 @@ void NeuralNetwork::testBatch()
 	for (int i = 0; i < testNum; i++)
 	{
 		if (test(pTestImage[i]) ==testLabel[i])correct++;
-		if ((double)(i + 1) / testNum * 10 > percent)
+		if ((int)((double)(i + 1) / testNum * 10) > percent)
 		{
 			percent = (double)(i + 1) / testNum * 10;
 			printf("%d0 %%, accuracy: %llf\n", percent,(double)correct/(i+1));

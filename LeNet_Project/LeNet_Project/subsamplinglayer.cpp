@@ -88,9 +88,11 @@ void SubSamplingLayer::SetInError(int i, double data, int row, int col) {
 	for (int Irow = row * f; Irow <= (row + 1) * f - 1; Irow++) {
 		for (int Icol = col * f; Icol <= (col + 1) * f - 1; Icol++) {
 			if (mark[i][Irow][Icol] == 1) {
-				inErrors[i]->data[row][col] = data; 
-				return; 
+				inErrors[i]->data[Irow][Icol] = data;
+				mark[i][Irow][Icol] = 0;
+				return;
 			}
+			else inErrors[i]->data[Irow][Icol] = 0.0;
 		}
 	}
 }
