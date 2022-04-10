@@ -23,15 +23,16 @@ Kernel::~Kernel()
 	delete[] w;
 }
 
-void Kernel::randomize()
+void Kernel::randomize(int inputN, int outputN)
 {
-	b = rand() * (2. / RAND_MAX) - 1;
+	b = 0.0;
 	for (int i = 0; i < num; i++)
 	{
 		for (int j = 0; j < height; j++)
 			for (int k = 0; k < width; k++)
 			{
 				w[i][j][k] = rand() * (2. / RAND_MAX) - 1;
+				w[i][j][k] *= sqrt(6.0 / (double)(height * width * (inputN + outputN)));
 			}
 	}
 }

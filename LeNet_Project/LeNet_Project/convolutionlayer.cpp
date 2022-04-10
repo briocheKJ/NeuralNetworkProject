@@ -206,5 +206,5 @@ void ConvolutionLayer::update(double alpha)
 void ConvolutionLayer::randomize()
 {
 	for (int i = 0; i < outputN; i++)
-		kernels[i]->randomize();
+		kernels[i]->randomize(inputN, outputN);
 }

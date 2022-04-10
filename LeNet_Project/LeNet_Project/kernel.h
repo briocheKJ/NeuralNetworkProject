@@ -11,7 +11,7 @@ public:
 	double*** w; //weight
 	double b; //bias
 
-	void randomize();
+	void randomize(int inputN, int outputN);
 	void update(Kernel* other, double alpha);
 	void clear();
 }; //Kernel类：一个对象存一类卷积核参数

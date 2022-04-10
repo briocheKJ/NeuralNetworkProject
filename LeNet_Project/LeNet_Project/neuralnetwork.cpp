@@ -110,7 +110,7 @@ void NeuralNetwork::trainBatch(int batchsize)
 		for (int j = 0; j < batchsize; j++)
 			train(pTrainImage[i*batchsize+j],&trainLabel[i*batchsize+j]);
 		for (int j = 0; j < layerCount; j++)
-			mLayers[j]->update(alpha);
+			mLayers[j]->update(alpha / (double)batchsize);
 	}
 }
 
@@ -119,7 +119,7 @@ void NeuralNetwork::testBatch()
 	int percent = 0, correct=0;
 	for (int i = 0; i < testNum; i++)
 	{
-		if (test(pTestImage[i])==testLabel[i])correct++;
+		if (test(pTestImage[i]) ==testLabel[i])correct++;
 		if ((double)(i + 1) / testNum * 10 > percent)
 		{
 			percent = (double)(i + 1) / testNum * 10;
@@ -146,6 +146,10 @@ FeatureMap* NeuralNetwork::createError(int height, int width)
 
 void NeuralNetwork::train(Image* image,uint8* label)
 {
+	for (int i = 0; i < featureMapCount; i++)
+		pFeatureMap[i]->clear();
+	for (int i = 0; i < errorCount; i++)
+		pError[i]->clear();
 	image->transform(pFeatureMap[0],firstH,firstW);
 	for (int i = 0; i < layerCount; i++)
 		mLayers[i]->forward(relu);
@@ -155,15 +159,23 @@ void NeuralNetwork::train(Image* image,uint8* label)
 }
 uint8 NeuralNetwork::getResult()
 {
-	int result=0;
+	int result = curFeatureMap;
 	for (int i = curFeatureMap; i < featureMapCount; i++)
-		if (pFeatureMap[result]->data[0][0] < pFeatureMap[result]->data[0][0])
+	{
+		cout << pFeatureMap[i]->data[0][0] << ' ';
+		if (pFeatureMap[result]->data[0][0] < pFeatureMap[i]->data[0][0])
 			result = i;
-	return result;
+	}
+	cout << result - curFeatureMap << endl;
+	return result - curFeatureMap;
 }
 
 uint8 NeuralNetwork::test(Image* image)
 {
+	for (int i = 0; i < featureMapCount; i++)
+		pFeatureMap[i]->clear();
+	for (int i = 0; i < errorCount; i++)
+		pError[i]->clear();
 	image->transform(pFeatureMap[0],firstH,firstW);
 	for (int i = 0; i < layerCount; i++)
 		mLayers[i]->forward(relu);
