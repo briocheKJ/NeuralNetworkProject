@@ -93,7 +93,7 @@ void NeuralNetwork::initialize(const string* pconfig_name,
 	}
 	*/
 }
-/*config3.txt
+/*config.txt
 train-images-idx3-ubyte
 train-labels-idx1-ubyte
 t10k-images-idx3-ubyte

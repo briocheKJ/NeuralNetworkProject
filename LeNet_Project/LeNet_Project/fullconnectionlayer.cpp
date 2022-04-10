@@ -14,10 +14,10 @@ FullConnectionLayer::FullConnectionLayer(ifstream& config)
 	Wbuffer = new double* [inputN];
 	for (int i = 0; i < inputN; i++) {
 		w[i] = new double[outputN];
-		Wbuffer[i] = new double[outputN];
+		Wbuffer[i] = new double[outputN]{0};
 	}
 	b = new double[outputN];
-	Bbuffer = new double[outputN];
+	Bbuffer = new double[outputN]{0};
 	z = new double[outputN];
 	init(config);
 }
@@ -74,26 +74,28 @@ void FullConnectionLayer::backward(double (*activegrad)(double)) {
 		//第i个(l-1)层神经元
 		double sum = 0;
 		for (int j = 0; j < outputN; j++) {
-			sum = sum + outErrors[j]->data[0][0] * w[i][j]*activegrad(z[j]);
+			sum = sum + outErrors[j]->data[0][0] * w[i][j]*activegrad(inputs[i]->data[0][0]);
 		}
 		inErrors[i]->data[0][0] = sum;
 	}
 	for (int i = 0; i < inputN; i++) {
 		for (int j = 0; j < outputN; j++) {
-			Wbuffer[i][j] = outErrors[j]->data[0][0] * activegrad(z[j])*inputs[i]->data[0][0];
+			Wbuffer[i][j] += outErrors[j]->data[0][0] * activegrad(inputs[i]->data[0][0]) * inputs[i]->data[0][0];
 		}
 	}
 	for (int i = 0; i < outputN; i++) {
-		Bbuffer[i] = outErrors[i]->data[0][0]* activegrad(z[i]);
+		Bbuffer[i] += outErrors[i]->data[0][0];
 	}
 }
 void FullConnectionLayer::update(double alpha) {
 	for (int i = 0; i < inputN; i++) {
 		for (int j = 0; j < outputN; j++) {
-			w[i][j] = w[i][j] - alpha * Wbuffer[i][j];
+			w[i][j] = w[i][j] + alpha * Wbuffer[i][j];
+			Wbuffer[i][j] = 0;
 		}
 	}
 	for (int i = 0; i < outputN; i++) {
-		b[i] = b[i] - Bbuffer[i] * alpha;
+		b[i] = b[i] + Bbuffer[i] * alpha;
+		Bbuffer[i] = 0;
 	}
 }
