@@ -29,6 +29,7 @@ int main()
                 
                 exit(0);
             }
+            
         }
         else if (state == 1) {
             printf("\n\n是否需要进行测试？\n1.yes\n2.no\n");
@@ -67,6 +68,7 @@ int main()
                 NeuralNetwork::getInstance()->trainBatch(tempnum);
                 state = 4;
             }
+           
         }
         else if (state == 2) {
             printf("\n\n神经网络结构已经建立！\n1.重新组织神经网络\n2.进行训练\n");
@@ -82,7 +84,7 @@ int main()
                 NeuralNetwork::getInstance()->trainBatch(tempnum);
                 state = 3;
             }
-            
+           
         }
         else if (state == 3) {
             printf("\n\n训练完毕！\n1.重新组织神经网络\n2.进行测试\n3.重新训练\n");
