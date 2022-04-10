@@ -162,11 +162,11 @@ uint8 NeuralNetwork::getResult()
 	int result = curFeatureMap;
 	for (int i = curFeatureMap; i < featureMapCount; i++)
 	{
-		cout << pFeatureMap[i]->data[0][0] << ' ';
+		//cout << pFeatureMap[i]->data[0][0] << ' ';
 		if (pFeatureMap[result]->data[0][0] < pFeatureMap[i]->data[0][0])
 			result = i;
 	}
-	cout << result - curFeatureMap << endl;
+	//cout << result - curFeatureMap << endl;
 	return result - curFeatureMap;
 }
 

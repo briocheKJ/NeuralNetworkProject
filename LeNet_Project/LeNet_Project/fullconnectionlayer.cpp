@@ -47,11 +47,12 @@ void FullConnectionLayer::init(ifstream& config)
 }
 void FullConnectionLayer::randomize() {
 	for (int i = 0; i < outputN; i++) {
-		b[i] = rand() * (2. / RAND_MAX) - 1;
+		b[i] = 0.0;
 	}
 	for (int i = 0; i < inputN; i++) {
 		for (int j = 0; j < outputN; j++) {
 			w[i][j] = rand() * (2. / RAND_MAX) - 1;
+			w[i][j] *= sqrt(6.0 / (double)(inputN + outputN));
 		}
 	}
 }
