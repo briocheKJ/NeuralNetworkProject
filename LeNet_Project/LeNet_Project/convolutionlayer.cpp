@@ -91,8 +91,16 @@ void ConvolutionLayer::init(ifstream&config)
 	for (int i = 0; i < inputN; i++)
 	{
 		config >> nows; 
+		if (nows[0] == 'f') break;
 		for (int j = 0; j < outputN; j++)
 			connection[i][j] = nows[j] - '0';
+	}
+
+	if (nows[0] == 'f')
+	{
+		for (int i = 0; i < inputN; i++)
+			for (int j = 0; j < outputN; j++)
+				connection[i][j] = true;
 	}
 
 	config >> height;

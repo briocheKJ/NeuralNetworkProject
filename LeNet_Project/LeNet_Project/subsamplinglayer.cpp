@@ -15,7 +15,7 @@ SubSamplingLayer::SubSamplingLayer(ifstream& config)
 	for (int i = 0; i < inputN; i++) {
 		mark[i] = new int* [inh];
 		for (int j = 0; j < inh; j++) {
-			mark[i][j] = new int[inw]{0};
+			mark[i][j] = new int[inw] {0};
 		}
 	}
 	init(config);
@@ -23,11 +23,11 @@ SubSamplingLayer::SubSamplingLayer(ifstream& config)
 SubSamplingLayer::~SubSamplingLayer() {
 	for (int i = 0; i < inputN; i++) {
 		for (int row = 0; row < inh; row++) {
-			delete[]mark[i][row];
+			delete[] mark[i][row];
 		}
-		delete[]mark[i];
+		delete[] mark[i];
 	}
-	delete[]mark;
+	delete[] mark;
 }
 void SubSamplingLayer::init(ifstream& config) {
 	NeuralNetwork* NN = NeuralNetwork::getInstance();

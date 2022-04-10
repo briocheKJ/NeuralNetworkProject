@@ -30,7 +30,9 @@ void Kernel::randomize()
 	{
 		for (int j = 0; j < height; j++)
 			for (int k = 0; k < width; k++)
+			{
 				w[i][j][k] = rand() * (2. / RAND_MAX) - 1;
+			}
 	}
 }
 

@@ -22,10 +22,12 @@ double relugrad(double y)
 
 NeuralNetwork::~NeuralNetwork()
 {
+	/*
 	for (int i = 0; i < trainNum; i++)
 		delete pTrainImage[i];
 	for (int i = 0; i < testNum; i++)
 		delete pTestImage[i];
+	*/
 	for (int i = 0; i < layerCount; i++)
 		delete mLayers[i];
 	for (int i = 0; i < pFeatureMap.size(); i++)
@@ -67,17 +69,20 @@ void NeuralNetwork::initialize(const string* pconfig_name,
 	for (int i = 0; i < layerCount; i++)
 	{
 		int type; config >> type;
-		cout << type<<"!!!" << endl;
+		//cout << type<<"!!!" << endl;
 		Layer* curLayer;
 		if (type == 1)curLayer = new ConvolutionLayer(config);
 		if (type == 2)curLayer = new SubSamplingLayer(config);
 		if (type == 3)curLayer = new FullConnectionLayer(config);
 		mLayers.push_back(curLayer);
 	}
+
 	if (readData(pTrainImage, trainLabel, trainNum, TRAIN_NAME, TRAINLABEL_NAME))
 		printf("can't find training data!\n"), system("pause");
 	if(readData(pTestImage, testLabel, testNum, TEST_NAME, TESTLABEL_NAME))
 		printf("can't find testing data!\n"), system("pause");
+	
+	/*
 	cout << pTrainImage.size() << endl;
 	for (int i = 0; i < 28; i++)
 	{ 
@@ -86,6 +91,7 @@ void NeuralNetwork::initialize(const string* pconfig_name,
 			else cout<<"0";
 		cout << endl;
 	}
+	*/
 }
 /*config.txt
 train-images-idx3-ubyte
@@ -100,6 +106,7 @@ void NeuralNetwork::trainBatch(int batchsize)
 		mLayers[i]->randomize();
 	for (int i = 0; i < trainNum / batchsize; i++)
 	{
+		cout << i << endl;
 		for (int j = 0; j < batchsize; j++)
 			train(pTrainImage[i*batchsize+j],&trainLabel[i*batchsize+j]);
 		for (int j = 0; j < layerCount; j++)
@@ -176,9 +183,10 @@ bool NeuralNetwork::readData(vector<Image*> &image, vector<uint8> &label, int tr
 	for (int i = 0; i < train_or_test_count; i++)
 	{ 
 		image.push_back(new Image());
+
 		for (int j = 0; j < Image::sh; j++)
 			for (int k = 0; k < Image::sw; k++)
-				image[i]->data[j][k] = tImage[i* Image::sh * Image::sw+j*Image::sh+k];
+				image[i]->data[j][k] = tImage[i* Image::sh * Image::sw+j*Image::sw+k];
 	}
 
 	uint8* tplabel = new uint8[train_or_test_count];
@@ -194,19 +202,20 @@ void NeuralNetwork::softmax(uint8 label)
 {
 	double max =pFeatureMap[curFeatureMap+getResult()]->data[0][0];
 	double k = 0, inner = 0;
-	for (uint8 i = curFeatureMap; i < featureMapCount; ++i)
+
+	for (int i = curFeatureMap; i < featureMapCount; ++i)
 	{
 		pError[curError+i-curFeatureMap]->data[0][0] = exp(pFeatureMap[i]->data[0][0] - max);
 		k += pError[curError + i - curFeatureMap]->data[0][0];
 	}
 	k = 1. / k;
-	for (uint8 i = curError; i < errorCount; ++i)
+	for (int i = curError; i < errorCount; ++i)
 	{
 		pError[i]->data[0][0] *= k;
 		inner -= (pError[i]->data[0][0])* (pError[i]->data[0][0]);
 	}
 	inner += pError[label+curError]->data[0][0];
-	for (uint8 i = curError; i < errorCount; ++i)
+	for (int i = curError; i < errorCount; ++i)
 	{
 		pError[i]->data[0][0] *= (i == label+curError) - pError[i]->data[0][0] - inner;
 	}
