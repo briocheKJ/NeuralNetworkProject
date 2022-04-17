@@ -4,8 +4,10 @@
 #include <cstdio>
 #include <iostream>
 using namespace std;
+
 #include <stdlib.h>
 #include <string>
+
 #include "neuralnetwork.h"
 #include "interaction.h" 
 
@@ -15,6 +17,8 @@ int cnt = 0;
 char str1[2000]; char str2[2000]; char str3[2000]; char str4[2000]; char str5[2000];
 int main()
 {
+    srand(time(NULL));
+
     while (1)
     {
         if (state == 0) {

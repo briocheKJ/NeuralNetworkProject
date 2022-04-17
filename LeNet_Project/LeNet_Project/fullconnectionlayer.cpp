@@ -10,6 +10,7 @@ FullConnectionLayer::FullConnectionLayer(ifstream& config)
 	inw = inh; //输入特征图大小
 	config >> inputN >> outputN; //输入、输出个数
 	outw = outh = 1;
+
 	w = new double* [inputN];
 	Wbuffer = new double* [inputN];
 	for (int i = 0; i < inputN; i++) {
@@ -18,7 +19,17 @@ FullConnectionLayer::FullConnectionLayer(ifstream& config)
 	}
 	b = new double[outputN];
 	Bbuffer = new double[outputN]{0};
-	z = new double[outputN];
+	
+	for (int pid = 0; pid < THREAD_NUM; pid++)
+	{
+		wDeltas[pid] = new double* [inputN];
+		for (int i = 0; i < inputN; i++) {
+			wDeltas[pid][i] = new double[outputN] {0};
+		}
+		bDeltas[pid] = new double[outputN] {0};
+		z[pid] = new double[outputN];
+	}
+
 	init(config);
 }
 FullConnectionLayer::~FullConnectionLayer() {
@@ -30,19 +41,34 @@ FullConnectionLayer::~FullConnectionLayer() {
 	}
 	delete[]w;
 	delete[]Wbuffer;
-	delete[]z;
+
+	for (int pid = 0; pid < THREAD_NUM; pid++)
+	{
+		for (int i = 0; i < inputN; i++) {
+			delete[] wDeltas[pid][i];
+		}
+		delete[] wDeltas[pid];
+		delete[] bDeltas[pid];
+		delete[] z[pid];
+	}
 }
 void FullConnectionLayer::init(ifstream& config)
 {
 	NeuralNetwork* NN = NeuralNetwork::getInstance();
+
 	for (int i = 0; i < inputN; i++)
-		inputs.push_back(NN->getFeatureMap());
+		for (int j = 0; j < THREAD_NUM; j++)
+			inputs[j].push_back(NN->getFeatureMap(j));
 	for (int i = 0; i < inputN; i++)
-		inErrors.push_back(NN->getError());
+		for (int j = 0; j < THREAD_NUM; j++)
+			inErrors[j].push_back(NN->getError(j));
 	for (int i = 0; i < outputN; i++)
-		outputs.push_back(NN->createFeatureMap(outh, outw));
+		for (int j = 0; j < THREAD_NUM; j++)
+			outputs[j].push_back(NN->createFeatureMap(j, outh, outw));
 	for (int i = 0; i < outputN; i++)
-		outErrors.push_back(NN->createError(outh, outw));
+		for (int j = 0; j < THREAD_NUM; j++)
+			outErrors[j].push_back(NN->createError(j, outh, outw));
+
 	randomize();
 }
 void FullConnectionLayer::randomize() {
@@ -56,37 +82,64 @@ void FullConnectionLayer::randomize() {
 		}
 	}
 }
-void FullConnectionLayer::forward(double (*active)(double)) {  //计算outputs
+void FullConnectionLayer::forward(int pid, double (*active)(double)) {  //计算outputs
 	for (int i = 0; i < outputN; i++) {
 		// 下一层第i个神经元
 		double ans = 0;
 		for (int j = 0; j < inputN; j++) {
-			ans = ans + w[j][i] * inputs[j]->data[0][0];
+			ans = ans + w[j][i] * inputs[pid][j]->data[0][0];
 		}
 		ans = ans + b[i];
-		z[i] = ans;
-		ans = active(z[i]);
-		outputs[i]->data[0][0] = ans;
+		z[pid][i] = ans;
+		ans = active(z[pid][i]);
+		outputs[pid][i]->data[0][0] = ans;
 	}
 }
-void FullConnectionLayer::backward(double (*activegrad)(double)) {
+void FullConnectionLayer::backward(int pid, double (*activegrad)(double)) {
 	for (int i = 0; i < inputN; i++) {
 		//第i个(l-1)层神经元
 		double sum = 0;
 		for (int j = 0; j < outputN; j++) {
-			sum = sum + outErrors[j]->data[0][0] * w[i][j]*activegrad(inputs[i]->data[0][0]);
+			sum = sum + outErrors[pid][j]->data[0][0] * w[i][j]*activegrad(inputs[pid][i]->data[0][0]);
 		}
-		inErrors[i]->data[0][0] = sum;
+		inErrors[pid][i]->data[0][0] = sum;
 	}
+
 	for (int i = 0; i < inputN; i++) {
 		for (int j = 0; j < outputN; j++) {
-			Wbuffer[i][j] += outErrors[j]->data[0][0] * activegrad(inputs[i]->data[0][0]) * inputs[i]->data[0][0];
+			wDeltas[pid][i][j] += outErrors[pid][j]->data[0][0] * activegrad(inputs[pid][i]->data[0][0]) * inputs[pid][i]->data[0][0];
 		}
 	}
 	for (int i = 0; i < outputN; i++) {
-		Bbuffer[i] += outErrors[i]->data[0][0];
+		bDeltas[pid][i] += outErrors[pid][i]->data[0][0];
+	}
+
+	/*
+	for (int i = 0; i < inputN; i++) {
+		for (int j = 0; j < outputN; j++) {
+			Wbuffer[i][j] += outErrors[pid][j]->data[0][0] * activegrad(inputs[i]->data[0][0]) * inputs[i]->data[0][0];
+		}
+	}
+	for (int i = 0; i < outputN; i++) {
+		Bbuffer[i] += outErrors[pid][i]->data[0][0];
+	}
+	*/
+}
+
+void FullConnectionLayer::updateBuffer(int pid)
+{
+	for (int i = 0; i < inputN; i++) {
+		for (int j = 0; j < outputN; j++) {
+			Wbuffer[i][j] += wDeltas[pid][i][j];
+			wDeltas[pid][i][j] = 0.0;
+		}
+	}
+	for (int i = 0; i < outputN; i++) {
+		Bbuffer[i] += bDeltas[pid][i];
+		bDeltas[pid][i] = 0.0;
 	}
 }
+
 void FullConnectionLayer::update(double alpha) {
 	for (int i = 0; i < inputN; i++) {
 		for (int j = 0; j < outputN; j++) {

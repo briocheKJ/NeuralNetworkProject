@@ -1,6 +1,8 @@
 #include <cstdio>
 #include <iostream>
 #include <fstream>
+#include <ctime>
+#include <omp.h>
 #include "neuralnetwork.h"
 #include "convolutionlayer.h"
 #include "fullconnectionlayer.h"
@@ -22,18 +24,21 @@ double relugrad(double y)
 
 NeuralNetwork::~NeuralNetwork()
 {
-	/*
+	
 	for (int i = 0; i < trainNum; i++)
 		delete pTrainImage[i];
 	for (int i = 0; i < testNum; i++)
 		delete pTestImage[i];
-	*/
+	//ÒªÊÍ·Å°É£¿
+
 	for (int i = 0; i < layerCount; i++)
 		delete mLayers[i];
-	for (int i = 0; i < pFeatureMap.size(); i++)
-		delete pFeatureMap[i];
-	for (int i = 0; i < pError.size(); i++)
-		delete pError[i];
+	for (int i = 0; i < THREAD_NUM; i++)
+		for (int j = 0; j < pFeatureMap[i].size(); j++)
+			delete pFeatureMap[i][j];
+	for (int i = 0; i < THREAD_NUM; i++)
+		for (int j = 0; j < pError[i].size(); j++)
+			delete pError[i][j];
 }
 
 NeuralNetwork* NeuralNetwork::getInstance()
@@ -63,9 +68,12 @@ void NeuralNetwork::initialize(const string* pconfig_name,
 	
 	Image::setwh(image_h,image_w);
 
-	createFeatureMap(firstH, firstW);
-	createError(firstH, firstW);
-	
+	for (int i = 0; i < THREAD_NUM; i++)
+	{
+		createFeatureMap(i, firstH, firstW);
+		createError(i, firstH, firstW);
+	}
+
 	for (int i = 0; i < layerCount; i++)
 	{
 		int type; config >> type;
@@ -101,14 +109,43 @@ t10k-labels-idx1-ubyte*/
 
 void NeuralNetwork::trainBatch(int batchsize)
 {
-	// ÅÐ¶ÏbatchsizeÕû³ýtrainNumÂð
+	// todo£ºÅÐ¶ÏbatchsizeÕû³ýtrainNumÂð
+
 	for (int i = 0; i < layerCount; i++)
 		mLayers[i]->randomize();
+	int last = 0;
+
+	clock_t start, finish;
+	start = clock();
+
 	for (int i = 0; i < trainNum / batchsize; i++)
 	{
-		cout << i << endl;
+		int now = i * 100 / (trainNum / batchsize);
+		if (now > last)
+		{
+			system("cls");
+			cout << "Progress: " << now << "%" << endl;
+			finish = clock();
+			cout << "Time: " << (double)(finish - start) / (double)CLOCKS_PER_SEC << "s" << endl;
+			last = now;
+		}
+
+#pragma omp parallel for num_threads(THREAD_NUM)
 		for (int j = 0; j < batchsize; j++)
-			train(pTrainImage[i*batchsize+j],&trainLabel[i*batchsize+j]);
+		{
+			int pid=omp_get_thread_num();
+
+			//cout << pid << endl;
+			train(pid, pTrainImage[i * batchsize + j], &trainLabel[i * batchsize + j]);
+			
+			#pragma omp critical
+			{
+				for (int l = 0; l < layerCount; l++)
+					mLayers[l]->updateBuffer(pid);
+			}
+			//¸üÐÂBuffer
+		}
+
 		for (int j = 0; j < layerCount; j++)
 			mLayers[j]->update(alpha / (double)batchsize);
 	}
@@ -128,58 +165,58 @@ void NeuralNetwork::testBatch()
 	}
 }
 
-FeatureMap* NeuralNetwork::getFeatureMap(){return pFeatureMap[curFeatureMap++]; }
-FeatureMap* NeuralNetwork::getError(){return pError[curError++];}
+FeatureMap* NeuralNetwork::getFeatureMap(int pid) { return pFeatureMap[pid][curFeatureMap[pid]++]; }
+FeatureMap* NeuralNetwork::getError(int pid) { return pError[pid][curError[pid]++]; }
 
-FeatureMap* NeuralNetwork::createFeatureMap(int height, int width) 
+FeatureMap* NeuralNetwork::createFeatureMap(int pid, int height, int width) 
 { 
-	++featureMapCount; 
-	pFeatureMap.push_back(new FeatureMap(height, width)); 
-	return pFeatureMap[featureMapCount-1];
+	++featureMapCount[pid];
+	pFeatureMap[pid].push_back(new FeatureMap(height, width));
+	return pFeatureMap[pid][featureMapCount[pid] - 1];
 }
-FeatureMap* NeuralNetwork::createError(int height, int width) 
+FeatureMap* NeuralNetwork::createError(int pid, int height, int width) 
 { 
-	++errorCount;
-	pError.push_back(new FeatureMap(height, width));
-	return pError[errorCount-1];
+	++errorCount[pid];
+	pError[pid].push_back(new FeatureMap(height, width));
+	return pError[pid][errorCount[pid] - 1];
 }
 
-void NeuralNetwork::train(Image* image,uint8* label)
+void NeuralNetwork::train(int pid, Image* image, uint8* label)
 {
-	for (int i = 0; i < featureMapCount; i++)
-		pFeatureMap[i]->clear();
-	for (int i = 0; i < errorCount; i++)
-		pError[i]->clear();
-	image->transform(pFeatureMap[0],firstH,firstW);
+	for (int i = 0; i < featureMapCount[pid]; i++)
+		pFeatureMap[pid][i]->clear();
+	for (int i = 0; i < errorCount[pid]; i++)
+		pError[pid][i]->clear();
+	image->transform(pFeatureMap[pid][0], firstH, firstW);
 	for (int i = 0; i < layerCount; i++)
-		mLayers[i]->forward(relu);
-	softmax(*label);
+		mLayers[i]->forward(pid, relu);
+	softmax(pid, *label);
 	for (int i = layerCount - 1; i >= 0; i--)
-		mLayers[i]->backward(relugrad);
+		mLayers[i]->backward(pid, relugrad);
 }
-uint8 NeuralNetwork::getResult()
+uint8 NeuralNetwork::getResult(int pid)
 {
-	int result = curFeatureMap;
-	for (int i = curFeatureMap; i < featureMapCount; i++)
+	int result = curFeatureMap[pid];
+	for (int i = curFeatureMap[pid]; i < featureMapCount[pid]; i++)
 	{
 		//cout << pFeatureMap[i]->data[0][0] << ' ';
-		if (pFeatureMap[result]->data[0][0] < pFeatureMap[i]->data[0][0])
+		if (pFeatureMap[pid][result]->data[0][0] < pFeatureMap[pid][i]->data[0][0])
 			result = i;
 	}
 	//cout << result - curFeatureMap << endl;
-	return result - curFeatureMap;
+	return result - curFeatureMap[pid];
 }
 
 uint8 NeuralNetwork::test(Image* image)
 {
-	for (int i = 0; i < featureMapCount; i++)
-		pFeatureMap[i]->clear();
-	for (int i = 0; i < errorCount; i++)
-		pError[i]->clear();
-	image->transform(pFeatureMap[0],firstH,firstW);
+	for (int i = 0; i < featureMapCount[0]; i++)
+		pFeatureMap[0][i]->clear();
+	for (int i = 0; i < errorCount[0]; i++)
+		pError[0][i]->clear();
+	image->transform(pFeatureMap[0][0], firstH, firstW);
 	for (int i = 0; i < layerCount; i++)
-		mLayers[i]->forward(relu);
-	return getResult();
+		mLayers[i]->forward(0, relu);
+	return getResult(0);
 }
 
 bool NeuralNetwork::readData(vector<Image*> &image, vector<uint8> &label, int train_or_test_count, const string* cData, const string* cLabel)
@@ -210,26 +247,27 @@ bool NeuralNetwork::readData(vector<Image*> &image, vector<uint8> &label, int tr
 	fclose(fp_label);
 	return 0;
 }
-void NeuralNetwork::softmax(uint8 label)
+
+void NeuralNetwork::softmax(int pid, uint8 label)
 {
-	double max =pFeatureMap[curFeatureMap+getResult()]->data[0][0];
+	double max =pFeatureMap[pid][curFeatureMap[pid] + getResult(pid)]->data[0][0];
 	double k = 0, inner = 0;
 
-	for (int i = curFeatureMap; i < featureMapCount; ++i)
+	for (int i = curFeatureMap[pid]; i < featureMapCount[pid]; ++i)
 	{
-		pError[curError+i-curFeatureMap]->data[0][0] = exp(pFeatureMap[i]->data[0][0] - max);
-		k += pError[curError + i - curFeatureMap]->data[0][0];
+		pError[pid][curError[pid]+i-curFeatureMap[pid]]->data[0][0] = exp(pFeatureMap[pid][i]->data[0][0] - max);
+		k += pError[pid][curError[pid] + i - curFeatureMap[pid]]->data[0][0];
 	}
 	k = 1. / k;
-	for (int i = curError; i < errorCount; ++i)
+	for (int i = curError[pid]; i < errorCount[pid]; ++i)
 	{
-		pError[i]->data[0][0] *= k;
-		inner -= (pError[i]->data[0][0])* (pError[i]->data[0][0]);
+		pError[pid][i]->data[0][0] *= k;
+		inner -= (pError[pid][i]->data[0][0])* (pError[pid][i]->data[0][0]);
 	}
-	inner += pError[label+curError]->data[0][0];
-	for (int i = curError; i < errorCount; ++i)
+	inner += pError[pid][label+curError[pid]]->data[0][0];
+	for (int i = curError[pid]; i < errorCount[pid]; ++i)
 	{
-		pError[i]->data[0][0] *= (i == label+curError) - pError[i]->data[0][0] - inner;
+		pError[pid][i]->data[0][0] *= (i == label+curError[pid]) - pError[pid][i]->data[0][0] - inner;
 	}
 }
 uint8 NeuralNetwork::testSingle(Image* image)

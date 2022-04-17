@@ -72,11 +72,16 @@ ConvolutionLayer::~ConvolutionLayer()
 	for (int i = 0; i < outputN; i++)
 	{
 		delete kernels.back();
-		delete deltas.back();
+		
 		delete buffer.back();
 		kernels.pop_back();
-		deltas.pop_back();
 		buffer.pop_back();
+
+		for (int j = 0; j < THREAD_NUM; j++)
+		{
+			delete deltas[j].back();
+			deltas[j].pop_back();
+		}
 	}
 	for (int i = 0; i < inputN; i++)
 		delete[] connection[i];
@@ -117,27 +122,34 @@ void ConvolutionLayer::init(ifstream&config)
 		for (int j = 0; j < inputN; j++)
 			if (connection[j][i]) cnt++;
 		kernels.push_back(new Kernel(cnt, height, width));
-		deltas.push_back(new Kernel(cnt, height, width));
 		buffer.push_back(new Kernel(cnt, height, width));
-		deltas[i]->clear();
 		buffer[i]->clear();
+		for (int j = 0; j < THREAD_NUM; j++)
+		{
+			deltas[j].push_back(new Kernel(cnt, height, width));
+			deltas[j][i]->clear();
+		}
 	}
 
 	
 
 	for (int i = 0; i < inputN; i++)
-		inputs.push_back(NN->getFeatureMap());
+		for (int j = 0; j < THREAD_NUM; j++)
+			inputs[j].push_back(NN->getFeatureMap(j));
 	for (int i = 0; i < inputN; i++)
-		inErrors.push_back(NN->getError());
+		for (int j = 0; j < THREAD_NUM; j++)
+			inErrors[j].push_back(NN->getError(j));
 	for (int i = 0; i < outputN; i++)
-		outputs.push_back(NN->createFeatureMap(outh, outw));
+		for (int j = 0; j < THREAD_NUM; j++)
+			outputs[j].push_back(NN->createFeatureMap(j, outh, outw));
 	for (int i = 0; i < outputN; i++)
-		outErrors.push_back(NN->createError(outh, outw));
+		for (int j = 0; j < THREAD_NUM; j++)
+			outErrors[j].push_back(NN->createError(j, outh, outw));
 
 	randomize();
 }
 
-void ConvolutionLayer::forward(double (*active)(double))
+void ConvolutionLayer::forward(int pid, double (*active)(double))
 {
 	for (int i = 0; i < outputN; i++)
 	{
@@ -145,17 +157,17 @@ void ConvolutionLayer::forward(double (*active)(double))
 		for(int j = 0; j < inputN; j++)
 			if (connection[j][i])
 			{
-				convolute_valid(inputs[j], kernels[i], cnt, outputs[i], step);
+				convolute_valid(inputs[pid][j], kernels[i], cnt, outputs[pid][i], step);
 				cnt++;
 			}
 	}
 	for (int i = 0; i < outputN; i++)
 		for (int j = 0; j < outh; j++)
 			for (int k = 0; k < outw; k++)
-				outputs[i]->data[j][k] = active(outputs[i]->data[j][k] + kernels[i]->b);
+				outputs[pid][i]->data[j][k] = active(outputs[pid][i]->data[j][k] + kernels[i]->b);
 }
 
-void ConvolutionLayer::backward(double (*activegrad)(double))
+void ConvolutionLayer::backward(int pid, double (*activegrad)(double))
 {
 	for (int i = 0; i < outputN; i++)
 	{
@@ -163,7 +175,7 @@ void ConvolutionLayer::backward(double (*activegrad)(double))
 		for (int j = 0; j < inputN; j++)
 			if (connection[j][i])
 			{
-				convolute_full(outErrors[i], kernels[i], cnt, inErrors[j], step);
+				convolute_full(outErrors[pid][i], kernels[i], cnt, inErrors[pid][j], step);
 				cnt++;
 			}
 	}
@@ -171,27 +183,29 @@ void ConvolutionLayer::backward(double (*activegrad)(double))
 	{
 		for (int j = 0; j < inh; j++)
 			for (int k = 0; k < inw; k++)
-				inErrors[i]->data[j][k] *= activegrad(inputs[i]->data[j][k]);
+				inErrors[pid][i]->data[j][k] *= activegrad(inputs[pid][i]->data[j][k]);
 	}
 	for (int i = 0; i < outputN; i++)
 		for (int j = 0; j < outh; j++)
 			for (int k = 0; k < outw; k++)
-				deltas[i]->b += outErrors[i]->data[j][k];
+				deltas[pid][i]->b += outErrors[pid][i]->data[j][k];
 	for (int i = 0; i < outputN; i++)
 	{
 		int cnt = 0;
 		for (int j = 0; j < inputN; j++)
 			if (connection[j][i])
 			{
-				convolute_deltas(inputs[j], outErrors[i], deltas[i], cnt, step);
+				convolute_deltas(inputs[pid][j], outErrors[pid][i], deltas[pid][i], cnt, step);
 				cnt++;
 			}
 	}
+	/*
 	for (int i = 0; i < outputN; i++)
 	{
-		buffer[i]->update(deltas[i], 1.0);
-		deltas[i]->clear();
+		buffer[i]->update(deltas[pid][i], 1.0);
+		deltas[pid][i]->clear();
 	}
+	*/ //更新buffer应该独立
 }
 
 void ConvolutionLayer::update(double alpha)
@@ -200,6 +214,15 @@ void ConvolutionLayer::update(double alpha)
 	{
 		kernels[i]->update(buffer[i], alpha);
 		buffer[i]->clear();
+	}
+}
+
+void ConvolutionLayer::updateBuffer(int pid)
+{
+	for (int i = 0; i < outputN; i++)
+	{
+		buffer[i]->update(deltas[pid][i], 1.0);
+		deltas[pid][i]->clear();
 	}
 }
 

@@ -1,4 +1,5 @@
 #pragma once
+#include "layer.h"
 #include<vector>
 #include<string>
 
@@ -30,16 +31,16 @@ public:
 	void testBatch();//È«²¿²âÊÔ
 	uint8 testSingle(Image*);
 public:
-	FeatureMap* createFeatureMap(int height, int width);
-	FeatureMap* getFeatureMap();
+	FeatureMap* createFeatureMap(int pid, int height, int width);
+	FeatureMap* getFeatureMap(int pid);
 
-	FeatureMap* createError(int height, int width);
-	FeatureMap* getError();
+	FeatureMap* createError(int pid, int height, int width);
+	FeatureMap* getError(int pid);
 
 private:
-	uint8 getResult();
-	void softmax(uint8 label);
-	void train(Image* image, uint8* label);
+	uint8 getResult(int pid);
+	void softmax(int pid, uint8 label);
+	void train(int pid, Image* image, uint8* label);
 	uint8 test(Image* image);
 	bool readData(vector<Image*> &image, vector<uint8> &label, int train_or_test_count, const string* cData, const string* cLabel);
 
@@ -48,8 +49,8 @@ private:
 
 private:
 	vector<Layer*> mLayers;
-	vector<FeatureMap*> pFeatureMap;
-	vector<FeatureMap*> pError;
+	vector<FeatureMap*> pFeatureMap[THREAD_NUM];
+	vector<FeatureMap*> pError[THREAD_NUM];
 	vector<Image*> pTrainImage;
 	vector<Image*> pTestImage;
 	vector<uint8> trainLabel;
@@ -58,10 +59,10 @@ private:
 private:
 	double alpha;
 
-	int curFeatureMap = 0;
-	int featureMapCount = 0;
-	int curError = 0;
-	int errorCount = 0;
+	int curFeatureMap[THREAD_NUM] = { 0 };
+	int featureMapCount[THREAD_NUM] = { 0 };
+	int curError[THREAD_NUM] = { 0 };
+	int errorCount[THREAD_NUM] = { 0 };
 
 	int layerCount;
 	int trainNum = 0;
