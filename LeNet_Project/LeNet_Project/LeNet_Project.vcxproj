@@ -80,11 +80,11 @@
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>./opencv_include/include;./include;$(IncludePath)</IncludePath>
     <LibraryPath>./lib;$(LibraryPath)</LibraryPath>
-    <LibraryWPath>C:\Users\brioche\Desktop\data;$(LibraryWPath)</LibraryWPath>
+    <LibraryWPath>$(LibraryWPath)</LibraryWPath>
     <SourcePath>$(SourcePath)</SourcePath>
     <PublicModuleDirectories>
     </PublicModuleDirectories>
-    <ExecutablePath>C:\Users\brioche\Desktop\data;$(ExecutablePath)</ExecutablePath>
+    <ExecutablePath>$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -161,15 +161,15 @@
     <ClCompile Include="subsamplinglayer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="convolutionlayer.h" />
-    <ClInclude Include="featuremap.h" />
-    <ClInclude Include="fullconnectionlayer.h" />
-    <ClInclude Include="image.h" />
-    <ClInclude Include="interaction.h" />
-    <ClInclude Include="kernel.h" />
-    <ClInclude Include="layer.h" />
-    <ClInclude Include="neuralnetwork.h" />
-    <ClInclude Include="subsamplinglayer.h" />
+    <ClInclude Include="include\convolutionlayer.h" />
+    <ClInclude Include="include\featuremap.h" />
+    <ClInclude Include="include\fullconnectionlayer.h" />
+    <ClInclude Include="include\image.h" />
+    <ClInclude Include="include\interaction.h" />
+    <ClInclude Include="include\kernel.h" />
+    <ClInclude Include="include\layer.h" />
+    <ClInclude Include="include\neuralnetwork.h" />
+    <ClInclude Include="include\subsamplinglayer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="t10k-images-idx3-ubyte" />

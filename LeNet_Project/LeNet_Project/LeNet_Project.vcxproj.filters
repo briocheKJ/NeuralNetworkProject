@@ -44,31 +44,31 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="neuralnetwork.h">
+    <ClInclude Include="include\convolutionlayer.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="convolutionlayer.h">
+    <ClInclude Include="include\featuremap.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="featuremap.h">
+    <ClInclude Include="include\fullconnectionlayer.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="kernel.h">
+    <ClInclude Include="include\image.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="layer.h">
+    <ClInclude Include="include\interaction.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="interaction.h">
+    <ClInclude Include="include\kernel.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="subsamplinglayer.h">
+    <ClInclude Include="include\layer.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="fullconnectionlayer.h">
+    <ClInclude Include="include\neuralnetwork.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="image.h">
+    <ClInclude Include="include\subsamplinglayer.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
